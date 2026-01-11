@@ -217,6 +217,21 @@ export default function JobApplicationDetailModal({
             </div>
           )}
 
+          {/* Extra Notes */}
+          {application.extraNotes && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Extra Notes
+              </label>
+              <div className="bg-dark-700/50 rounded-xl p-4 max-h-48 overflow-y-auto">
+                <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
+                  {application.extraNotes}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* No Cover Letter State */}
           {!application.aiCoverLetter && (
             <div className="mb-6 p-6 border border-dashed border-dark-500 rounded-xl text-center">

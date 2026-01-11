@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingApplication, setEditingApplication] = useState(null);
   const [editingStatus, setEditingStatus] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
 
@@ -116,9 +117,18 @@ export default function Dashboard() {
     setApplications(apps => apps.filter(app => app.id !== applicationId));
   };
 
-  const handleApplicationAdded = (newApplication) => {
-    setApplications(prev => [newApplication, ...prev]);
+  const handleApplicationUpsert = (upsertedApplication, isUpdate) => {
+    if (isUpdate) {
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === upsertedApplication.id ? upsertedApplication : app
+        )
+      );
+    } else {
+      setApplications(prev => [upsertedApplication, ...prev]);
+    }
     setShowAddModal(false);
+    setEditingApplication(null);
   };
 
   const handleRowClick = (app, e) => {
@@ -424,10 +434,10 @@ export default function Dashboard() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setEditingStatus(app.id);
+                                setEditingApplication(app);
                               }}
                               className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-white transition-colors"
-                              title="Edit Status"
+                              title="Edit Application"
                             >
                               <Edit3 className="w-4 h-4" />
                             </button>
@@ -459,12 +469,16 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Add Application Modal */}
-        {showAddModal && (
+        {/* Add/Edit Application Modal */}
+        {(showAddModal || editingApplication) && (
           <AddApplicationModal
-            onClose={() => setShowAddModal(false)}
-            onSuccess={handleApplicationAdded}
+            onClose={() => {
+              setShowAddModal(false);
+              setEditingApplication(null);
+            }}
+            onSuccess={handleApplicationUpsert}
             candidateId={candidateId}
+            applicationToEdit={editingApplication}
           />
         )}
 
@@ -481,3 +495,4 @@ export default function Dashboard() {
     </Layout>
   );
 }
+

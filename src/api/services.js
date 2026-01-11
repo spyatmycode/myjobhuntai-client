@@ -13,12 +13,7 @@ export const authService = {
    */
   async login(email, password) {
     const response = await api.post('/api/auth/login', { email, password });
-    // Token is at response.data.token (top level of response wrapper)
-    const token = response.data.token;
-    if (token) {
-      localStorage.setItem('token', token);
-    }
-    return { token, data: response.data.data };
+    return response.data;
   },
 
   /**

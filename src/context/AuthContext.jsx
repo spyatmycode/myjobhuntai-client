@@ -1,7 +1,24 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService, candidateProfileService } from '../api/services';
 
 const AuthContext = createContext(null);
+
+function decodeJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error('Invalid token:', e);
+    return null;
+  }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -10,46 +27,91 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing token on mount
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    const storedCandidateId = localStorage.getItem('candidateId');
-    
-    if (token) {
-      setIsAuthenticated(true);
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch (e) {
-          console.error('Failed to parse stored user:', e);
-        }
+  const logout = useCallback(() => {
+    authService.logout();
+    setUser(null);
+    setCandidateId(null);
+    setCandidateProfile(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  const fetchAndSetCandidateProfile = useCallback(async (id) => {
+    try {
+      const profile = await candidateProfileService.getProfile(id);
+      if (profile) {
+        setCandidateProfile(profile);
+        setCandidateId(profile.id);
+        localStorage.setItem('candidateId', profile.id.toString());
       }
-      if (storedCandidateId) {
-        setCandidateId(parseInt(storedCandidateId, 10));
+      return profile;
+    } catch (error) {
+      console.error('Failed to fetch candidate profile:', error);
+      if (error.message.includes('404')) {
+        setCandidateProfile(null);
+        localStorage.removeItem('candidateId');
+      }
+      return null;
+    }
+  }, []);
+
+  const initializeAuth = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decodedToken = decodeJwt(token);
+      if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+        setIsAuthenticated(true);
+        const userData = { email: decodedToken.sub };
+        setUser(userData);
+        
+        const storedCandidateId = localStorage.getItem('candidateId');
+        if (storedCandidateId) {
+          await fetchAndSetCandidateProfile(parseInt(storedCandidateId, 10));
+        }
+      } else {
+        logout();
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [logout, fetchAndSetCandidateProfile]);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   const login = async (email, password) => {
     try {
+      // Login returns { token, data } where data is the candidate profile
       const result = await authService.login(email, password);
-      setIsAuthenticated(true);
       
-      const userData = { email };
+      const token = result.token;
+      if (!token) throw new Error('No token received');
+      
+      localStorage.setItem('token', token);
+      
+      const decodedToken = decodeJwt(token);
+      if (!decodedToken) throw new Error('Invalid token');
+
+      setIsAuthenticated(true);
+      const userData = { email: decodedToken.sub };
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      // If candidate data is returned, store it
-      if (result.data?.id) {
-        setCandidateId(result.data.id);
-        localStorage.setItem('candidateId', result.data.id.toString());
-        setCandidateProfile(result.data);
+      // The login response from the old API included the profile.
+      // The new one is void. So we must fetch the profile manually.
+      // Let's assume the candidateId is now in the token.
+      if (decodedToken.candidateId) {
+        await fetchAndSetCandidateProfile(decodedToken.candidateId);
+      } else {
+         // Fallback for old token format or if candidateId is not in token
+         const storedCandidateId = localStorage.getItem('candidateId');
+         if(storedCandidateId) {
+           await fetchAndSetCandidateProfile(parseInt(storedCandidateId, 10));
+         }
       }
-      
+
       return { success: true };
     } catch (error) {
+      logout();
       return { success: false, error: error.message };
     }
   };
@@ -84,15 +146,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('candidateId', profile.id.toString());
     }
   };
-
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-    setCandidateId(null);
-    setCandidateProfile(null);
-    setIsAuthenticated(false);
-  };
-
+  
   const value = {
     user,
     candidateId,
@@ -103,8 +157,8 @@ export function AuthProvider({ children }) {
     signup,
     logout,
     createProfile,
-    setCandidateId,
     updateCandidateProfile,
+    fetchAndSetCandidateProfile
   };
 
   return (
