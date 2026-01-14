@@ -31,6 +31,24 @@
            hover:bg-dark-500 hover:border-dark-500;
   }
   
+  .btn-danger {
+    @apply px-6 py-3 bg-accent-danger/80 text-white font-medium rounded-xl 
+           border border-accent-danger/90 transition-all duration-300
+           hover:bg-accent-danger;
+  }
+
+  .btn-secondary-sm {
+    @apply px-4 py-2 text-sm bg-dark-600 text-white font-medium rounded-lg 
+           border border-dark-500 transition-all duration-300
+           hover:bg-dark-500 hover:border-dark-500;
+  }
+
+  .btn-danger-sm {
+    @apply px-4 py-2 text-sm bg-accent-danger/80 text-white font-medium rounded-lg 
+           border border-accent-danger/90 transition-all duration-300
+           hover:bg-accent-danger;
+  }
+
   .btn-ghost {
     @apply px-4 py-2 text-gray-400 font-medium rounded-lg transition-all duration-200
            hover:text-white hover:bg-dark-700;

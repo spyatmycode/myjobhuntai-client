@@ -201,7 +201,7 @@ export default function Dashboard() {
             onClick={() => setShowAddModal(true)}
             className="btn-primary flex items-center gap-2"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="md:flex hidden w-5 h-5" />
             Add Application
           </button>
         </div>
@@ -342,130 +342,148 @@ export default function Dashboard() {
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-dark-600">
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Company</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Position</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Status</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredApplications.map((app, index) => {
-                    const statusConfig = STATUS_CONFIG[app.status] || STATUS_CONFIG.INTERESTED;
-                    const StatusIcon = statusConfig.icon;
-                    const appIsEffectivelyGhosted = isEffectivelyGhosted(app);
-                    
-                    return (
-                      <tr 
-                        key={app.id} 
-                        onClick={(e) => handleRowClick(app, e)}
-                        className={`border-b border-dark-700 hover:bg-dark-700/50 transition-colors cursor-pointer
-                                  ${appIsEffectivelyGhosted ? 'bg-gray-500/5' : ''}`}
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-dark-600 flex items-center justify-center">
-                              <Building2 className="w-5 h-5 text-gray-400" />
+            <>
+              {/* Table for larger screens */}
+              <div className="overflow-x-auto hidden md:block">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-dark-600">
+                      <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Company</th>
+                      <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Position</th>
+                      <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Status</th>
+                      <th className="text-left py-4 px-6 text-gray-400 font-medium text-sm">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredApplications.map((app, index) => {
+                      const statusConfig = STATUS_CONFIG[app.status] || STATUS_CONFIG.INTERESTED;
+                      const StatusIcon = statusConfig.icon;
+                      const appIsEffectivelyGhosted = isEffectivelyGhosted(app);
+                      
+                      return (
+                        <tr 
+                          key={app.id} 
+                          onClick={(e) => handleRowClick(app, e)}
+                          className={`border-b border-dark-700 hover:bg-dark-700/50 transition-colors cursor-pointer
+                                    ${appIsEffectivelyGhosted ? 'bg-gray-500/5' : ''}`}
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-dark-600 flex items-center justify-center">
+                                <Building2 className="w-5 h-5 text-gray-400" />
+                              </div>
+                              <div>
+                                <span className="font-medium">{app.companyName}</span>
+                                {appIsEffectivelyGhosted && (
+                                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                    <Ghost className="w-3 h-3" />
+                                    No response in 2+ weeks
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div>
-                              <span className="font-medium">{app.companyName}</span>
-                              {appIsEffectivelyGhosted && (
-                                <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                                  <Ghost className="w-3 h-3" />
-                                  No response in 2+ weeks
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <span className="text-gray-300">{app.jobTitle}</span>
-                        </td>
-                        <td className="py-4 px-6">
-                          {editingStatus === app.id ? (
-                            <select
-                              value={app.status}
-                              onChange={(e) => handleStatusChange(app.id, e.target.value)}
-                              onBlur={() => setEditingStatus(null)}
-                              autoFocus
-                              className="input-field text-sm py-1 px-2"
-                            >
-                              {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                                <option key={key} value={key}>{config.label}</option>
-                              ))}
-                            </select>
-                          ) : (
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="text-gray-300">{app.jobTitle}</span>
+                          </td>
+                          <td className="py-4 px-6">
+                            {editingStatus === app.id ? (
+                              <select
+                                value={app.status}
+                                onChange={(e) => handleStatusChange(app.id, e.target.value)}
+                                onBlur={() => setEditingStatus(null)}
+                                autoFocus
+                                className="input-field text-sm py-1 px-2"
+                              >
+                                {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                                  <option key={key} value={key}>{config.label}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingStatus(app.id);
+                                  }}
+                                  className={`${statusConfig.class} inline-flex items-center gap-1.5 cursor-pointer 
+                                            hover:opacity-80 transition-opacity`}
+                                >
+                                  <StatusIcon className="w-3.5 h-3.5" />
+                                  {statusConfig.label}
+                                </button>
+                                {appIsEffectivelyGhosted && (
+                                  <span className="text-gray-500" title="Likely ghosted - no response in 2+ weeks">
+                                    <Ghost className="w-4 h-4" />
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-4 px-6">
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setEditingStatus(app.id);
+                                  setSelectedApplication(app);
                                 }}
-                                className={`${statusConfig.class} inline-flex items-center gap-1.5 cursor-pointer 
-                                          hover:opacity-80 transition-opacity`}
+                                className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-white transition-colors"
+                                title="View Details"
                               >
-                                <StatusIcon className="w-3.5 h-3.5" />
-                                {statusConfig.label}
+                                <Eye className="w-4 h-4" />
                               </button>
-                              {appIsEffectivelyGhosted && (
-                                <span className="text-gray-500" title="Likely ghosted - no response in 2+ weeks">
-                                  <Ghost className="w-4 h-4" />
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedApplication(app);
-                              }}
-                              className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-white transition-colors"
-                              title="View Details"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingApplication(app);
-                              }}
-                              className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-white transition-colors"
-                              title="Edit Application"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (confirm('Are you sure you want to delete this application?')) {
-                                  try {
-                                    await jobApplicationService.deleteApplication(app.id);
-                                    handleDelete(app.id);
-                                  } catch (err) {
-                                    setError(err.message);
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingApplication(app);
+                                }}
+                                className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-white transition-colors"
+                                title="Edit Application"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (confirm('Are you sure you want to delete this application?')) {
+                                    try {
+                                      await jobApplicationService.deleteApplication(app.id);
+                                      handleDelete(app.id);
+                                    } catch (err) {
+                                      setError(err.message);
+                                    }
                                   }
-                                }
-                              }}
-                              className="p-2 rounded-lg hover:bg-accent-danger/10 text-gray-400 hover:text-accent-danger transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                                }}
+                                className="p-2 rounded-lg hover:bg-accent-danger/10 text-gray-400 hover:text-accent-danger transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Card list for mobile */}
+              <div className="md:hidden space-y-4 p-4">
+                  {filteredApplications.map(app => (
+                      <ApplicationCard 
+                          key={app.id} 
+                          app={app} 
+                          onStatusChange={handleStatusChange}
+                          onViewDetails={() => setSelectedApplication(app)}
+                          onEdit={() => setEditingApplication(app)}
+                          onDelete={handleDelete}
+                          setError={setError}
+                      />
+                  ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -494,5 +512,44 @@ export default function Dashboard() {
       </div>
     </Layout>
   );
+}
+
+// Mobile-first card component
+function ApplicationCard({ app, onStatusChange, onViewDetails, onEdit, onDelete, setError }) {
+    const statusConfig = STATUS_CONFIG[app.status] || STATUS_CONFIG.INTERESTED;
+    const StatusIcon = statusConfig.icon;
+
+    return (
+        <div className="card p-4" onClick={onViewDetails}>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h3 className="font-bold text-lg">{app.companyName}</h3>
+                    <p className="text-gray-400">{app.jobTitle}</p>
+                </div>
+                <div className={`${statusConfig.class} text-xs font-bold py-1 px-2 rounded-full`}>
+                    {statusConfig.label}
+                </div>
+            </div>
+            <div className="mt-4 flex justify-end space-x-2">
+                <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="btn-secondary-sm">Edit</button>
+                <button 
+                    onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to delete this application?')) {
+                            try {
+                                await jobApplicationService.deleteApplication(app.id);
+                                onDelete(app.id);
+                            } catch (err) {
+                                setError(err.message);
+                            }
+                        }
+                    }}
+                    className="btn-danger-sm"
+                >
+                    Delete
+                </button>
+            </div>
+        </div>
+    );
 }
 

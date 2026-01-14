@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import OnboardingModal from './OnboardingModal';
 
@@ -9,11 +10,17 @@ export default function RequireProfile({ children }) {
     createProfile 
   } = useAuth();
   
-  const showOnboarding = !isLoading && !candidateProfile;
+  const [isDismissed, setIsDismissed] = useState(false);
+  
+  const showOnboarding = !isLoading && !candidateProfile && !isDismissed;
 
   const handleProfileCreated = (newProfile) => {
-    // The createProfile function in AuthContext now handles updating the context
     createProfile(newProfile);
+    setIsDismissed(false); // Reset dismiss state on profile creation
+  };
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
   };
 
   if (isLoading) {
@@ -34,9 +41,10 @@ export default function RequireProfile({ children }) {
         <OnboardingModal
           userEmail={user?.email}
           onProfileCreated={handleProfileCreated}
-          onDismiss={() => {}} // Empty dismiss handler for now
+          onDismiss={handleDismiss}
         />
       )}
     </>
   );
 }
+

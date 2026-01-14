@@ -90,16 +90,16 @@ export default function ResumeHub() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 animate-fade-in">
           <div>
-            <h1 className="text-3xl font-display font-bold mb-2">Resume Hub</h1>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2">Resume Hub</h1>
             <p className="text-gray-400">Manage your resumes and view AI-generated summaries</p>
           </div>
           <button 
             onClick={() => setShowUploadModal(true)}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-2 w-full sm:w-auto"
           >
             <Upload className="w-5 h-5" />
             Upload Resume
@@ -109,9 +109,9 @@ export default function ResumeHub() {
         {/* AI Summary Display */}
         {aiSummary && (
           <div className="card p-6 mb-8 animate-slide-up border-accent-primary/30">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-primary to-accent-secondary 
-                            flex items-center justify-center">
+                            flex-shrink-0 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
