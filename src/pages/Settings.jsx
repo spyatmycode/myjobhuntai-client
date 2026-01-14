@@ -237,7 +237,7 @@ export default function Settings() {
             Once you delete your account, there is no going back. Please be certain.
           </p>
           <button
-            onClick={() => alert('Account deletion would be implemented here')}
+            onClick={() => alert('Account deletion coming soon')}
             className="px-6 py-3 bg-accent-danger/10 text-accent-danger border border-accent-danger/30 
                      rounded-xl font-medium hover:bg-accent-danger/20 transition-colors"
           >
